@@ -1,53 +1,59 @@
-// index.js
-const weatherApi = "https://api.weather.gov/alerts/active?area="
 
-// Your code here!
+const weatherApi = "https://api.weather.gov/alerts/active?area=";
 
 async function fetchWeatherAlerts(state) {
-    const stateInput = document.querySelector("#state");
-    const summary = document.querySelector("#summary");
-    const alertList = document.querySelector("#alert-list");
+    const stateInput = document.querySelector("#state-input");
+    const alertsDisplay = document.querySelector("#alerts-display");
     const errorMessage = document.querySelector("#error-message");
 
-    // Clear previous data before making a new request
-    summary.textContent = "";
-    alertList.innerHTML = "";
+    alertsDisplay.innerHTML = "";
     errorMessage.textContent = "";
-    errorMessage.hidden = true;
+    errorMessage.classList.add("hidden");
 
-    try{
-        const response = await fetch(`https://api.weather.gov/alerts/active?area=${state}`);
-        if (!response.ok){
-            throw new Error(`HTTP ERROR: ${response.status}`)
+    try {
+        
+        const response = await fetch(`${weatherApi}${state}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ERROR: ${response.status}`);
         }
-        const alert = await response.json();
-        
-        console.log(alert);
-        displayAlerts(alert)
-        stateInput.value = "";
-        
 
-    }catch (error) {
-    errorMessage.textContent = error.message;
-    errorMessage.hidden = false;
-    console.log(error.message);
+        const data = await response.json();
+
+        
+        displayAlerts(data);
+
+        stateInput.value = "";
+
+    } catch (error) {
+      
+        errorMessage.textContent = error.message;
+        errorMessage.classList.remove("hidden");
     }
 }
+
+function displayAlerts(data) {
+    const alertsDisplay = document.querySelector("#alerts-display");
+
+  
+    const summary = document.createElement("h2");
+    summary.textContent = `Weather Alerts: ${data.features.length}`;
+    alertsDisplay.appendChild(summary);
+
     
-
-    function displayAlerts(data){
-        const summary = document.querySelector("#summary");
-        const alertList = document.querySelector("#alert-list");
-
-        summary.textContent = `${data.title}: ${data.features.length}`;
-
-        alertList.innerHTML = "";
-
-        data.features.forEach(alert => {
-        const li = document.createElement("li");
-        li.textContent = alert.properties.headline;
-        alertList.append(li);
+    data.features.forEach(alert => {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = alert.properties.headline;
+        alertsDisplay.appendChild(paragraph);
     });
+}
 
 
+document.querySelector("#fetch-alerts").addEventListener("click", () => {
+    const stateInput = document.querySelector("#state-input");
+    const state = stateInput.value.trim();
+
+    if (state) {
+        fetchWeatherAlerts(state);
     }
+});
